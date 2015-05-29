@@ -18,7 +18,7 @@ func main() {
 
 	log.Print("Starting service")
 
-	log.Print("Initial load of service.dat")
+	log.Printf("Initial load of %s", *statusFilePath)
 	loadStatusFile()
 
 	log.Print("Starting watcher thread")
