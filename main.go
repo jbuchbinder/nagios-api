@@ -2,13 +2,16 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	ns "github.com/jbuchbinder/nagiosstatus"
 	"log"
 	"net/http"
+	"time"
 )
 
 var (
 	statusFilePath = flag.String("statusfile", "/var/log/nagios/status.dat", "Path to Nagios status.dat file")
+	port           = flag.Int("port", 8888, "Listening port")
 	status         *ns.NagiosStatus
 	watch          *watcher
 )
@@ -28,6 +31,13 @@ func main() {
 		panic(err)
 	}
 
-	http.Handle("/", buildRouter())
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	s := &http.Server{
+		Addr:           fmt.Sprintf(":%d", *port),
+		Handler:        buildRouter(),
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+	log.Printf("Starting HTTP server on port %d", *port)
+	log.Fatal(s.ListenAndServe())
 }
