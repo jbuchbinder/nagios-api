@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	nameServiceSeparator = ":"
+	nameServiceSeparator  = ":"
 	nameServicesSeparator = ","
 )
 
