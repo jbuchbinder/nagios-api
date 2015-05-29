@@ -12,12 +12,12 @@ func buildRouter() *mux.Router {
 	r := mux.NewRouter()
 
 	r_hosts := r.PathPrefix("/hosts").Subrouter()
-	r_hosts.HandleFunc("/", listHostHandler)
-	r_hosts.HandleFunc("/{host}", hostHandler)
+	r_hosts.HandleFunc("/", listHostHandler).Methods("GET")
+	r_hosts.HandleFunc("/{host}", hostHandler).Methods("GET")
 
 	r_services := r.PathPrefix("/services").Subrouter()
-	r_services.HandleFunc("/{host}", listServiceHandler)
-	r_services.HandleFunc("/{host}/{service}", serviceHandler)
+	r_services.HandleFunc("/{host}", listServiceHandler).Methods("GET")
+	r_services.HandleFunc("/{host}/{service}", serviceHandler).Methods("GET")
 
 	return r
 }
@@ -62,12 +62,12 @@ func serviceHandler(w http.ResponseWriter, r *http.Request) {
 func writeOutput(w http.ResponseWriter, obj interface{}) {
 	b, e := json.Marshal(obj)
 	if e != nil {
-		w.WriteHeader(501)
 		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(501)
 		w.Write([]byte(fmt.Sprintf("{\"error\":\"%s\"}", e)))
 		return
 	}
-	w.WriteHeader(200)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
 	w.Write(b)
 }
