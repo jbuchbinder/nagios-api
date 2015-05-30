@@ -6,20 +6,24 @@ import (
 	ns "github.com/jbuchbinder/nagiosstatus"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 )
 
 var (
+	commandPath    = flag.String("commandfile", "/var/log/nagios/rw/nagios.cmd", "Path to Nagios nagios.cmd command file")
 	statusFilePath = flag.String("statusfile", "/var/log/nagios/status.dat", "Path to Nagios status.dat file")
 	port           = flag.Int("port", 8888, "Listening port")
 	status         *ns.NagiosStatus
 	watch          *watcher
+	cmdmutex       *sync.Mutex
 )
 
 func main() {
 	flag.Parse()
 
 	log.Print("Starting service")
+	cmdmutex = new(sync.Mutex)
 
 	log.Printf("Initial load of %s", *statusFilePath)
 	loadStatusFile()
