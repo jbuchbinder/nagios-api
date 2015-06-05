@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
+	"text/template"
 	"time"
 )
 
@@ -176,7 +178,8 @@ var (
 	nagiosCommands = map[int]cmdTmpl{
 		ACKNOWLEDGE_HOST_PROBLEM: cmdTmpl{
 			Name:    "ACKNOWLEDGE_HOST_PROBLEM",
-			Pattern: "{host};{sticky};{notify};{persistent};{author};{comment}",
+			Pattern: "{{.host}};{{.sticky}};{{.notify}};{{.persistent}};{{.author}};{{.comment}}",
+
 			Defaults: map[string]interface{}{
 				"sticky":     2,
 				"notify":     1,
@@ -321,7 +324,7 @@ var (
 		SCHEDULE_SVC_CHECK:                             cmdTmpl{},
 		SCHEDULE_SVC_DOWNTIME: cmdTmpl{
 			Name:    "SCHEDULE_SVC_DOWNTIME",
-			Pattern: "{host_name};{service},{start_time};{end_time};{fixed};{trigger_id};{duration};{author};{comment}",
+			Pattern: "{{.host_name}};{{.service}},{{.start_time}};{{.end_time}};{{.fixed}};{{.trigger_id}};{{.duration}};{{.author};{{.comment}}",
 			Defaults: map[string]interface{}{
 				"duration":   600,
 				"fixed":      1,
@@ -357,8 +360,17 @@ var (
 	}
 )
 
-func formCommand(op string, args string) string {
-	return fmt.Sprintf("[%d] %s;%s\n", time.Now().Unix(), op, args)
+func FormCommand(op int, args map[string]interface{}) (string, error) {
+	tmpl, err := template.New("op").Parse(nagiosCommands[op].Pattern)
+	if err != nil {
+		return "", err
+	}
+	buf := bytes.NewBufferString("")
+	err = tmpl.Execute(buf, args)
+	if err != nil {
+		panic(err)
+	}
+	return fmt.Sprintf("[%d] %s;%s\n", time.Now().Unix(), nagiosCommands[op].Name, buf.String()), nil
 }
 
 func writeCommand(cmdstring string) error {

@@ -42,17 +42,29 @@ func buildRouter() *mux.Router {
 			for k2 := range req {
 				_, present := post[req[k2]]
 				if !present {
-					writeError(w, errors.New("Missing required parameter " + req[k2]))
+					writeError(w, errors.New("Missing required parameter "+req[k2]))
 					return
 				}
 			}
 
-			// TODO: Populate defaults
+			// Populate defaults
+			args := map[string]interface{}{}
+			for k3 := range ncmd.Defaults {
+				args[k3] = ncmd.Defaults[k3]
+			}
 
-			// TODO: Populate pattern
+			// Populate vars
+			for k4 := range post {
+				args[k4] = post[k4]
+			}
 
-			// TODO: Execute
-			// err = writeCommand(formCommand(ncmd.Name, pattern))
+			// Execute
+			cmd, err := FormCommand(k, args)
+			if err != nil {
+				writeError(w, err)
+				return
+			}
+			err = writeCommand(cmd)
 			if err != nil {
 				writeError(w, err)
 				return
