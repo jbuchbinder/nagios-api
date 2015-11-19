@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net/http"
@@ -88,10 +87,17 @@ func buildRouter() *mux.Router {
 	return r
 }
 
+type errorResponse struct {
+	Error string `json:"error"`
+}
+
 func writeError(w http.ResponseWriter, e error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(501)
-	w.Write([]byte(fmt.Sprintf("{\"error\":\"%s\"}", e)))
+	b, _ := json.Marshal(errorResponse{
+		Error: e.Error(),
+	})
+	w.Write(b)
 }
 
 func writeOutput(w http.ResponseWriter, obj interface{}) {
